@@ -14,8 +14,8 @@ const category_1 = __importDefault(require("./routes/category"));
 const order_1 = __importDefault(require("./routes/order"));
 const owner_1 = __importDefault(require("./routes/owner"));
 const place_category_1 = __importDefault(require("./routes/place-category"));
-// const MONGODB_URI = 'mongodb://localhost:27017/absher';
-const MONGODB_URI = process.env.PORT;
+
+const MONGODB_URI = process.env.MONGODB_URI;
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.static('./'));
@@ -59,18 +59,13 @@ app.use((err, req, res, next) => {
 });
 // conntect to database
 mongoose_1.default
-    .connect('mongodb+srv://Absher_32132:M9PdhY7gZpqZOOuc@cluster0.mzhrv2e.mongodb.net/?retryWrites=true&w=majority')
-    .then(() => {
-    app.listen(process.env.PORT);
-    // const server = app.listen(port);
-    // const io = require('./socket').init(server, { cors: { origin: '*' } });
-    // io.on('connection', (socket) => {
-    // 	console.log('someone connected!');
-    // });
-    console.log('connected successfully to database');
-    module.exports = app;
-})
-    .catch((err) => {
-    console.log('error while connected to database', err);
-    throw err;
-});
+	.connect(MONGODB_URI)
+	.then(() => {
+		app.listen(process.env.PORT);
+		console.log('connected successfully to database');
+		module.exports = app;
+	})
+	.catch((err) => {
+		console.log('error while connected to database', err);
+		throw err;
+	});

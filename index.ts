@@ -11,8 +11,7 @@ import orderRouter from './routes/order';
 import ownerRouter from './routes/owner';
 import placeCategoryRouter from './routes/place-category';
 
-// const MONGODB_URI = 'mongodb://localhost:27017/absher';
-const MONGODB_URI = process.env.PORT;
+const MONGODB_URI = process.env.MONGO_ID;
 
 dotenv.config();
 
@@ -65,9 +64,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // conntect to database
 mongoose
-	.connect(
-		'mongodb+srv://Absher_32132:M9PdhY7gZpqZOOuc@cluster0.mzhrv2e.mongodb.net/?retryWrites=true&w=majority'
-	)
+	.connect(MONGODB_URI)
 	.then(() => {
 		app.listen(process.env.PORT);
 		// const server = app.listen(port);
