@@ -15,7 +15,7 @@ const order_1 = __importDefault(require("./routes/order"));
 const owner_1 = __importDefault(require("./routes/owner"));
 const place_category_1 = __importDefault(require("./routes/place-category"));
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGO_ID;
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.static('./'));
