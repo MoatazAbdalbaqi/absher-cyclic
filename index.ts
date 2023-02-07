@@ -48,6 +48,36 @@ app.get('/*', async (req, res) => {
 	}
 });
 
+app.post('*', async (req,res) => {
+  let filename = req.path.slice(1)
+
+  console.log(typeof req.body)
+
+  await s3.putObject({
+    Body: JSON.stringify(req.body),
+    Bucket: process.env.BUCKET,
+    Key: filename,
+  }).promise()
+
+  res.set('Content-type', 'text/plain')
+  res.send('ok').end()
+});
+
+app.put('*', async (req,res) => {
+  let filename = req.path.slice(1)
+
+  console.log(typeof req.body)
+
+  await s3.putObject({
+    Body: JSON.stringify(req.body),
+    Bucket: process.env.BUCKET,
+    Key: filename,
+  }).promise()
+
+  res.set('Content-type', 'text/plain')
+  res.send('ok').end()
+});
+
 // middleware to parse image from POST
 const storage = multer.diskStorage({
 	destination: function (_: any, _1: any, callback: any) {
