@@ -28,7 +28,7 @@ const s3 = new AWS.S3();
 
 
 // curl -i https://some-app.cyclic.app/myFile.txt
-app.get('/images/*', async (req, res) => {
+app.get('/*', async (req, res) => {
 	let filename = req.path.slice(1);
 	try {
 		let s3File = await s3
