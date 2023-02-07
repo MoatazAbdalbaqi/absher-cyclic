@@ -17,7 +17,7 @@ dotenv.config();
 
 const app: Express = express();
 
-app.use(express.static('./'));
+app.use(express.static('./images'));
 
 app.use(express.json({ limit: '10mb' }));
 
