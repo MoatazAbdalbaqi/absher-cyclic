@@ -21,6 +21,33 @@ app.use(express.static('./'));
 
 app.use(express.json({ limit: '10mb' }));
 
+const express = require('express');
+const app = express();
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3();
+
+
+// curl -i https://some-app.cyclic.app/myFile.txt
+app.get('/images/*', async (req, res) => {
+	let filename = req.path.slice(1);
+	try {
+		let s3File = await s3
+			.getObject({
+				Bucket: process.env.BUCKET,
+				Key: filename,
+			})
+			.promise();
+		res.set('Content-type', s3File.ContentType);
+		res.send(s3File.Body.toString()).end();
+	} catch (error) {
+		if (error.code === 'NoSuchKey') {
+			res.sendStatus(404).end();
+		} else {
+			res.sendStatus(500).end();
+		}
+	}
+});
+
 // middleware to parse image from POST
 const storage = multer.diskStorage({
 	destination: function (_: any, _1: any, callback: any) {
