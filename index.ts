@@ -12,6 +12,7 @@ import ownerRouter from './routes/owner';
 import placeCategoryRouter from './routes/place-category';
 import { S3 } from 'aws-sdk';
 import { getFileStream, uploadFile } from './helpers/upload-image';
+import multerS3 from 'multer-s3';
 
 const MONGODB_URI = process.env.MONGO_ID!;
 
@@ -34,38 +35,55 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // middleware to parse image from POST
-const storage = multer.diskStorage({
-	destination: function (_: any, _1: any, callback: any) {
-		callback(null, 'images');
-	},
-	filename: function (_: any, file: any, callback: any) {
-		callback(null, Date.now() + '-' + file.originalname);
-	},
+// const storage = multer.diskStorage({
+// 	destination: function (_: any, _1: any, callback: any) {
+// 		callback(null, 'images');
+// 	},
+// 	filename: function (_: any, file: any, callback: any) {
+// 		callback(null, Date.now() + '-' + file.originalname);
+// 	},
+// });
+// const fileFilter = function (req: any, file: any, cb: any) {
+// 	let ext = path.extname(file.originalname);
+// 	if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+// 		req.fileValidationError = 'Forbidden extension';
+// 		return cb(null, false, req.fileValidationError);
+// 	}
+// 	cb(null, true);
+// };
+
+const upload = multer({
+	storage: multerS3({
+		s3: s3,
+		bucket: 'some-bucket',
+		metadata: function (req: any, file: any, cb: any) {
+			cb(null, { fieldName: file.fieldname });
+		},
+		key: function (req: any, file: any, cb: any) {
+			cb(null, Date.now().toString());
+		},
+	}),
 });
-const fileFilter = function (req: any, file: any, cb: any) {
-	let ext = path.extname(file.originalname);
-	if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
-		req.fileValidationError = 'Forbidden extension';
-		return cb(null, false, req.fileValidationError);
-	}
-	cb(null, true);
-};
+
+app.post('/upload', upload.array('photos', 3), function (req, res, next) {
+	res.send('Successfully uploaded ' + req.files.length + ' files!');
+});
 // app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
-app.post(
-	'/upload-image',
-	multer({ storage: storage, fileFilter: fileFilter }).single('image'),
-	async (req: Request, res: Response) => {
-		const file = req.file;
-		const result = await uploadFile(file);
-		console.log('result', result);
-		res.send('OKKKKKKKK');
-	}
-);
-app.get('/images/:id', (req: Request, res: Response) => {
-	const key = req.params.id;
-	const readStream = getFileStream(key);
-	readStream.pipe(res);
-});
+// app.post(
+// 	'/upload-image',
+// 	multer({ storage: storage, fileFilter: fileFilter }).single('image'),
+// 	async (req: Request, res: Response) => {
+// 		const file = req.file;
+// 		const result = await uploadFile(file);
+// 		console.log('result', result);
+// 		res.send('OKKKKKKKK');
+// 	}
+// );
+// app.get('/images/:id', (req: Request, res: Response) => {
+// 	const key = req.params.id;
+// 	const readStream = getFileStream(key);
+// 	readStream.pipe(res);
+// });
 
 // routs
 app.use('/auth', userRouter);
