@@ -55,7 +55,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 const upload = multer({
 	storage: multerS3({
 		s3: s3,
-		bucket: 'some-bucket',
+		bucket: process.env.BUCKET || "",
 		metadata: function (req: any, file: any, cb: any) {
 			cb(null, { fieldName: file.fieldname });
 		},
@@ -65,7 +65,8 @@ const upload = multer({
 	}),
 });
 
-app.post('/upload', upload.array('photos', 3), function (req, res, next) {
+app.use('/upload', upload.array('photos', 3), function (req, res, next) {
+	console.log("HGEREEEEEE");
 	res.send('Successfully uploaded ' + req.files.length + ' files!');
 });
 // app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
