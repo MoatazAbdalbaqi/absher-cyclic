@@ -13,7 +13,7 @@ import placeCategoryRouter from './routes/place-category';
 import { S3 } from 'aws-sdk';
 import { getFileStream, uploadFile } from './helpers/upload-image';
 
-const MONGODB_URI = process.env.MONGO_ID + '';
+const MONGODB_URI = process.env.MONGO_ID!;
 
 dotenv.config();
 
@@ -56,7 +56,6 @@ app.post(
 	multer({ storage: storage, fileFilter: fileFilter }).single('image'),
 	async (req: Request, res: Response) => {
 		const file = req.file;
-		console.log(file);
 		const result = await uploadFile(file);
 		console.log('result', result);
 		res.send('OKKKKKKKK');
@@ -83,15 +82,13 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // conntect to database
+mongoose.set('strictQuery', false);
 mongoose
-	.connect(MONGODB_URI)
+	.connect(
+		'mongodb+srv://Absher_32132:M9PdhY7gZpqZOOuc@cluster0.mzhrv2e.mongodb.net/?retryWrites=true&w=majority'
+	)
 	.then(() => {
 		app.listen(process.env.PORT);
-		// const server = app.listen(port);
-		// const io = require('./socket').init(server, { cors: { origin: '*' } });
-		// io.on('connection', (socket) => {
-		// 	console.log('someone connected!');
-		// });
 		console.log('connected successfully to database');
 		module.exports = app;
 	})
