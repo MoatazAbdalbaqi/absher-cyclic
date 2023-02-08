@@ -10,8 +10,10 @@ import categoryRouter from './routes/category';
 import orderRouter from './routes/order';
 import ownerRouter from './routes/owner';
 import placeCategoryRouter from './routes/place-category';
+import { S3 } from 'aws-sdk';
+import { getFileStream, uploadFile } from './helpers/upload-image';
 
-const MONGODB_URI = process.env.MONGO_ID;
+const MONGODB_URI = process.env.MONGO_ID + '';
 
 dotenv.config();
 
@@ -21,31 +23,14 @@ app.use(express.static('./images'));
 
 app.use(express.json({ limit: '10mb' }));
 
-const express = require('express');
-const app = express();
-const AWS = require('aws-sdk');
-const s3 = new AWS.S3();
+const s3 = new S3();
 
-
-// curl -i https://some-app.cyclic.app/myFile.txt
-app.get('/images/*', async (req, res) => {
-	let filename = req.path.slice(1);
-	try {
-		let s3File = await s3
-			.getObject({
-				Bucket: process.env.BUCKET,
-				Key: filename,
-			})
-			.promise();
-		res.set('Content-type', s3File.ContentType);
-		res.send(s3File.Body.toString()).end();
-	} catch (error) {
-		if (error.code === 'NoSuchKey') {
-			res.sendStatus(404).end();
-		} else {
-			res.sendStatus(500).end();
-		}
-	}
+// middleware to solve the CROS error
+app.use((req: Request, res: Response, next: NextFunction) => {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE');
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+	next();
 });
 
 // middleware to parse image from POST
@@ -65,14 +50,22 @@ const fileFilter = function (req: any, file: any, cb: any) {
 	}
 	cb(null, true);
 };
-app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
-
-// middleware to solve the CROS error
-app.use((req: Request, res: Response, next: NextFunction) => {
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE');
-	res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-	next();
+// app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
+app.post(
+	'/upload-image',
+	multer({ storage: storage, fileFilter: fileFilter }).single('image'),
+	async (req: Request, res: Response) => {
+		const file = req.file;
+		console.log(file);
+		const result = await uploadFile(file);
+		console.log('result', result);
+		res.send('OKKKKKKKK');
+	}
+);
+app.get('/images/:id', (req: Request, res: Response) => {
+	const key = req.params.id;
+	const readStream = getFileStream(key);
+	readStream.pipe(res);
 });
 
 // routs
